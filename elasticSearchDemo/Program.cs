@@ -1,5 +1,7 @@
 ﻿using Dapper;
 using Elasticsearch.Net;
+using elasticSearchDemo.Models;
+using Microsoft.Extensions.DependencyInjection;
 using MySql.Data.MySqlClient;
 using Nest;
 using System;
@@ -13,71 +15,124 @@ namespace elasticSearchDemo
     {
         static void Main(string[] args)
         {
-            //var pool = new SingleNodeConnectionPool(new Uri("https://192.168.220.128:9200"));
-
-            //var settings = new ConnectionSettings(pool)
-            //    .CertificateFingerprint("2f0c21fdc5d9d05b423152b3d485abcffe9093deb9c93d67f3b82cef913a1dbb")
-            //    .BasicAuthentication("elastic", "ko0Hp1Wxhx1ZTJTtyFOI");
-
-            var pool = new SingleNodeConnectionPool(new Uri("https://127.0.0.1:9200"));
-
+            var pool = new SingleNodeConnectionPool(new Uri("https://192.168.220.132:9200"));
             var settings = new ConnectionSettings(pool)
-                .CertificateFingerprint("F4:BC:31:1C:EB:54:20:2C:1D:F8:81:90:44:BE:A6:63:47:CE:9D:7D:80:30:A1:EC:7B:87:4A:E4:00:4D:66:D7")
-                .BasicAuthentication("elastic", "e1dkAdhm3l7ZD+qTsBhE");
-
+                .CertificateFingerprint("36a7e7e8244315ca7d559c158cb552b56121f80aac365a2a49d9487c5b182395")
+                .BasicAuthentication("elastic", "lTzR-uiYdGEWRxs9_vst");
             var client = new ElasticClient(settings);
 
+            ServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(client);
+            serviceCollection.AddScoped<IndicesOperate>();
+            serviceCollection.AddScoped<DocumentOperate>();
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var documentOperate = serviceProvider.GetRequiredService<DocumentOperate>();
+
+            documentOperate.AggsAvg("myindex");
+
+            #region 
+            //List<Person> people = new List<Person>()
+            //{
+            //    new Person()
+            //    {
+            //        Id=1001,
+            //        Name="zhangsan",
+            //        Age=30,
+            //        City="beijing",
+            //        Money=5000
+            //    },
+            //    new Person()
+            //    {
+            //        Id=1002,
+            //        Name="lisi",
+            //        Age=40,
+            //        City="shanghai",
+            //        Money=1000
+            //    },new Person()
+            //    {
+            //        Id=1003,
+            //        Name="wangwu",
+            //        Age=50,
+            //        City="beijing",
+            //        Money=5000
+            //    },new Person()
+            //    {
+            //        Id=1004,
+            //        Name="zhaoliu",
+            //        Age=60,
+            //        City="beijing",
+            //        Money=2000
+            //    },new Person()
+            //    {
+            //        Id=1005,
+            //        Name="tianqi",
+            //        Age=70,
+            //        City="shanghai",
+            //        Money=6000
+            //    }
+            //};
+            //foreach (var item in people)
+            //{
+            //    documentOperate.Update("myindex", item);
+            //}
+
+            //Console.Read();
+            #endregion
+
+
             #region 商户任务表查询
-            var param = new MerchantTaskParam()
-            {
-                BeginTime = new DateTime(2023, 01, 31, 19, 54, 0),
-                EndTime = new DateTime(2023, 01, 31, 20, 34, 0),
-                MerchantNo = "A2022102161137",
-            };
-            List<Func<QueryContainerDescriptor<MerchantTask>, QueryContainer>> queryList = new List<Func<QueryContainerDescriptor<MerchantTask>, QueryContainer>>();
-            if (!string.IsNullOrWhiteSpace(param.SerialNo))
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.SerialNo).Query(param.SerialNo)));
-            }
-            if (!string.IsNullOrWhiteSpace(param.MerchantNo))
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.MerchantNo).Query(param.MerchantNo)));
-            }
-            if (!string.IsNullOrWhiteSpace(param.AccountId))
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.AccountId).Query(param.AccountId)));
-            }
-            if (!string.IsNullOrWhiteSpace(param.DeviceNo))
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.DeviceNo).Query(param.DeviceNo)));
-            }
-            if (!string.IsNullOrWhiteSpace(param.ShortMessage))
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.ShortMessage).Query(param.ShortMessage)));
-            }
-            if (param.TaskResult != null)
-            {
-                queryList.Add(p => p.Match(p => p.Field(p => p.TaskResult).Query(param.TaskResult.ToString())));
-            }
-            if (param.BeginTime != null)
-            {
-                queryList.Add(p => p.DateRange(p => p.Field(p=>p.CreateTime).GreaterThanOrEquals(param.BeginTime.Value)));
-            }
-            if (param.EndTime != null)
-            {
-                queryList.Add(p => p.DateRange(p => p.Field(p => p.CreateTime).LessThanOrEquals(param.EndTime.Value)));
-            }
-            //20230131195500295437710016124
-            var response = client.Search<MerchantTask>(s =>
-                s.Query(q =>
-                    q.Bool(m =>
-                        m.Must(queryList)
-                    )
-                )
-                .From(0)
-                .Size(10)
-                .Index("merchant_task"));
-            Console.ReadLine();
+            //var param = new MerchantTaskParam()
+            //{
+            //    BeginTime = new DateTime(2023, 01, 31, 19, 54, 0),
+            //    EndTime = new DateTime(2023, 01, 31, 20, 34, 0),
+            //    MerchantNo = "A2022102161137",
+            //};
+            //List<Func<QueryContainerDescriptor<MerchantTask>, QueryContainer>> queryList = new List<Func<QueryContainerDescriptor<MerchantTask>, QueryContainer>>();
+            //if (!string.IsNullOrWhiteSpace(param.SerialNo))
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.SerialNo).Query(param.SerialNo)));
+            //}
+            //if (!string.IsNullOrWhiteSpace(param.MerchantNo))
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.MerchantNo).Query(param.MerchantNo)));
+            //}
+            //if (!string.IsNullOrWhiteSpace(param.AccountId))
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.AccountId).Query(param.AccountId)));
+            //}
+            //if (!string.IsNullOrWhiteSpace(param.DeviceNo))
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.DeviceNo).Query(param.DeviceNo)));
+            //}
+            //if (!string.IsNullOrWhiteSpace(param.ShortMessage))
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.ShortMessage).Query(param.ShortMessage)));
+            //}
+            //if (param.TaskResult != null)
+            //{
+            //    queryList.Add(p => p.Match(p => p.Field(p => p.TaskResult).Query(param.TaskResult.ToString())));
+            //}
+            //if (param.BeginTime != null)
+            //{
+            //    queryList.Add(p => p.DateRange(p => p.Field(p => p.CreateTime).GreaterThanOrEquals(param.BeginTime.Value)));
+            //}
+            //if (param.EndTime != null)
+            //{
+            //    queryList.Add(p => p.DateRange(p => p.Field(p => p.CreateTime).LessThanOrEquals(param.EndTime.Value)));
+            //}
+            ////20230131195500295437710016124
+            //var response = client.Search<MerchantTask>(s =>
+            //    s.Query(q =>
+            //        q.Bool(m =>
+            //            m.Must(queryList)
+            //        )
+            //    )
+            //    .From(0)
+            //    .Size(10)
+            //    .Index("merchant_task"));
+            //Console.ReadLine();
             #endregion
 
             #region 同步task_details表数据
@@ -665,48 +720,4 @@ namespace elasticSearchDemo
         /// </summary>
         public int? ExecutionMode { get; set; } = 0;
     }
-
-    public class Person
-    {
-        public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string IpAddress { get; set; }
-        public GeoIp GeoIp { get; set; }
-    }
-
-    public class GeoIp
-    {
-        public string CityName { get; set; }
-        public string ContinentName { get; set; }
-        public string CountryIsoCode { get; set; }
-        public GeoLocation Location { get; set; }
-        public string RegionName { get; set; }
-    }
-
-    public class Student
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int Age { get; set; }
-        public Address Address { get; set; }
-    }
-
-    public class Address
-    {
-        public string Province { get; set; }
-        public string City { get; set; }
-    }
-
-    public class Blog
-    {
-        public string City { get; set; }
-    }
-
-    public class TestArrayField
-    {
-        public List<int> IntList { get; set; }
-        public List<Blog> Blogs { get; set; }
-    }
-
 }
