@@ -28,6 +28,26 @@ namespace elasticSearchDemo
         }
 
         /// <summary>
+        /// 批量插入文档，有Id属性则使用自定的Id，否则es自动生成Id
+        /// </summary>
+        public void BulkInsert(string indexName, List<Person> persons)
+        {
+            BulkRequest bulkRequest = new BulkRequest(indexName);
+            bulkRequest.Operations = new BulkOperationsCollection<IBulkOperation>();
+            foreach (var item in persons)
+            {
+                var createOperation = new BulkCreateOperation<Person>(item);
+                createOperation.Id = new Id(item.Id);
+                bulkRequest.Operations.Add(createOperation);
+            }
+            var response = _elasticClient.Bulk(bulkRequest);
+            if (response.ApiCall.Success)
+            {
+                Console.WriteLine("bulk success");
+            }
+        }
+
+        /// <summary>
         /// 查询文档
         /// </summary>
         public void Get(string indexName, int docId)

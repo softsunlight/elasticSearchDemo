@@ -15,10 +15,14 @@ namespace elasticSearchDemo
     {
         static void Main(string[] args)
         {
-            var pool = new SingleNodeConnectionPool(new Uri("https://192.168.220.132:9200"));
+            //var pool = new SingleNodeConnectionPool(new Uri("https://192.168.220.132:9200"));
+            //var settings = new ConnectionSettings(pool)
+            //    .CertificateFingerprint("36a7e7e8244315ca7d559c158cb552b56121f80aac365a2a49d9487c5b182395")
+            //    .BasicAuthentication("elastic", "lTzR-uiYdGEWRxs9_vst");
+            var pool = new SingleNodeConnectionPool(new Uri("https://127.0.0.1:9200"));
             var settings = new ConnectionSettings(pool)
-                .CertificateFingerprint("36a7e7e8244315ca7d559c158cb552b56121f80aac365a2a49d9487c5b182395")
-                .BasicAuthentication("elastic", "lTzR-uiYdGEWRxs9_vst");
+                .CertificateFingerprint("F4:BC:31:1C:EB:54:20:2C:1D:F8:81:90:44:BE:A6:63:47:CE:9D:7D:80:30:A1:EC:7B:87:4A:E4:00:4D:66:D7")
+                .BasicAuthentication("elastic", "e1dkAdhm3l7ZD+qTsBhE");
             var client = new ElasticClient(settings);
 
             ServiceCollection serviceCollection = new ServiceCollection();
@@ -30,7 +34,42 @@ namespace elasticSearchDemo
 
             var documentOperate = serviceProvider.GetRequiredService<DocumentOperate>();
 
-            documentOperate.AggsAvg("myindex");
+            //documentOperate.AggsAvg("myindex");
+            documentOperate.BulkInsert("person", new List<Person>()
+            {
+                new Person()
+                {
+                    Id=5,
+                    Name="zhangsan",
+                    Age=21,
+                    City="Beijing",
+                    Money=18000
+                },
+                new Person()
+                {
+                    Id=6,
+                    Name="lisi",
+                    Age=25,
+                    City="Shanghai",
+                    Money=24000
+                },
+                new Person()
+                {
+                    Id=7,
+                    Name="wagnwu",
+                    Age=30,
+                    City="Beijing",
+                    Money=30000
+                },
+                 new Person()
+                {
+                    Id=8,
+                    Name="zhaoliu",
+                    Age=27,
+                    City="Changsha",
+                    Money=12000
+                }
+            });
 
             #region 
             //List<Person> people = new List<Person>()
